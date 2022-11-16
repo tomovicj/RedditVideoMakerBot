@@ -48,6 +48,19 @@ RETRIABLE_STATUS_CODES = [500, 502, 503, 504]
 # For more information about the client_secrets.json file format, see:
 #   https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
 CLIENT_SECRETS_FILE = './uploaders/yt/client_secrets.json'
+if not os.path.isfile(CLIENT_SECRETS_FILE):
+    with open(CLIENT_SECRETS_FILE, "w") as f:
+        f.write(
+"""{
+    "web": {
+        "client_id": "INSERT CLIENT ID HERE",
+        "client_secret": "INSERT CLIENT SECRET HERE",
+        "redirect_uris": [],
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://accounts.google.com/o/oauth2/token"
+    }
+}""")
+    exit(f"Please edit {CLIENT_SECRETS_FILE}")
 
 # This OAuth 2.0 access scope allows an application to upload files to the
 # authenticated user's YouTube channel, but doesn't allow other types of access.
