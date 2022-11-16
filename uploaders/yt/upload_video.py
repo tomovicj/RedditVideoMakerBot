@@ -47,7 +47,7 @@ RETRIABLE_STATUS_CODES = [500, 502, 503, 504]
 #   https://developers.google.com/youtube/v3/guides/authentication
 # For more information about the client_secrets.json file format, see:
 #   https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
-CLIENT_SECRETS_FILE = 'client_secrets.json'
+CLIENT_SECRETS_FILE = './uploaders/yt/client_secrets.json'
 
 # This OAuth 2.0 access scope allows an application to upload files to the
 # authenticated user's YouTube channel, but doesn't allow other types of access.
@@ -101,7 +101,7 @@ def initialize_upload(youtube, options):
         media_body=MediaFileUpload(options.file, chunksize=-1, resumable=True)
     )
 
-    resumable_upload(insert_request)
+    return resumable_upload(insert_request)
 
 # This method implements an exponential backoff strategy to resume a
 # failed upload.
@@ -117,18 +117,17 @@ def resumable_upload(request):
             status, response = request.next_chunk()
             if response is not None:
                 if 'id' in response:
-                    print('Video id "%s" was successfully uploaded.' %
-                          response['id'])
+                    print(f"Video id {response['id']} was successfully uploaded.")
+                    return response['id']
                 else:
-                    exit('The upload failed with an unexpected response: %s' % response)
+                    exit(f"The upload failed with an unexpected response: {response}")
         except HttpError as e:
             if e.resp.status in RETRIABLE_STATUS_CODES:
-                error = 'A retriable HTTP error %d occurred:\n%s' % (e.resp.status,
-                                                                     e.content)
+                error = f"A retriable HTTP error {e.resp.status} occurred:\n{e.content}"
             else:
                 raise
         except RETRIABLE_EXCEPTIONS as e:
-            error = 'A retriable error occurred: %s' % e
+            error = f"A retriable error occurred: {e}"
 
         if error is not None:
             print(error)
@@ -138,28 +137,42 @@ def resumable_upload(request):
 
             max_sleep = 2 ** retry
             sleep_seconds = random.random() * max_sleep
-            print('Sleeping %f seconds and then retrying...' % sleep_seconds)
+            print(f"Sleeping {sleep_seconds} seconds and then retrying...")
             time.sleep(sleep_seconds)
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--file', required=True, help='Video file to upload')
-    parser.add_argument('--title', help='Video title', default='Test Title')
-    parser.add_argument('--description', help='Video description',
-                        default='Test Description')
-    parser.add_argument('--category', default='22',
-                        help='Numeric video category. ' +
-                        'See https://developers.google.com/youtube/v3/docs/videoCategories/list')
-    parser.add_argument('--keywords', help='Video keywords, comma separated',
-                        default='')
-    parser.add_argument('--privacyStatus', choices=VALID_PRIVACY_STATUSES,
-                        default='private', help='Video privacy status.')
-    args = parser.parse_args()
+# if __name__ == '__main__':
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--file', required=True, help='Video file to upload')
+#     parser.add_argument('--title', help='Video title', default='Test Title')
+#     parser.add_argument('--description', help='Video description', default='Test Description')
+#     parser.add_argument('--category', default='22', help='Numeric video category. ' + 'See https://developers.google.com/youtube/v3/docs/videoCategories/list')
+#     parser.add_argument('--keywords', help='Video keywords, comma separated', default='')
+#     parser.add_argument('--privacyStatus', choices=VALID_PRIVACY_STATUSES, default='private', help='Video privacy status.')
+#     args = parser.parse_args()
+
+#     youtube = get_authenticated_service()
+
+#     try:
+#         initialize_upload(youtube, args)
+#     except HttpError as e:
+#         print(f"An HTTP error {e.resp.status} occurred:\n{e.content}")
+
+
+def upload(file, title, description, category, keywords, privacyStatus):
+    args = argparse.Namespace()
+    dict = vars(args)
+
+    dict["file"] = file
+    dict["title"] = title
+    dict["description"] = description
+    dict["category"] = category
+    dict["keywords"] = keywords
+    dict["privacyStatus"] = privacyStatus
 
     youtube = get_authenticated_service()
 
     try:
-        initialize_upload(youtube, args)
+        return initialize_upload(youtube, args)
     except HttpError as e:
-        print('An HTTP error %d occurred:\n%s' % (e.resp.status, e.content))
+        print(f"An HTTP error {e.resp.status} occurred:\n{e.content}")
