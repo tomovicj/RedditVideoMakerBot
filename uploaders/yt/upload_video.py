@@ -92,7 +92,8 @@ def initialize_upload(youtube, options):
             categoryId=options.category
         ),
         status=dict(
-            privacyStatus=options.privacyStatus
+            privacyStatus=options.privacyStatus,
+            selfDeclaredMadeForKids=options.MadeForKids
         )
     )
 
@@ -172,7 +173,7 @@ def resumable_upload(request):
 #         print(f"An HTTP error {e.resp.status} occurred:\n{e.content}")
 
 
-def upload(file, title, description, category, keywords, privacyStatus):
+def upload(file: str, title: str, description: str, category: str, keywords: str, privacyStatus: str, MadeForKids: bool = False):
     args = argparse.Namespace()
     dict = vars(args)
 
@@ -182,6 +183,7 @@ def upload(file, title, description, category, keywords, privacyStatus):
     dict["category"] = category
     dict["keywords"] = keywords
     dict["privacyStatus"] = privacyStatus
+    dict["MadeForKids"] = MadeForKids
 
     youtube = get_authenticated_service()
 

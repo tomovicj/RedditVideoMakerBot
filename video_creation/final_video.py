@@ -149,3 +149,4 @@ def make_final_video(
     print_step(
         f'Reddit title: {reddit_obj["thread_title"]} \n Background Credit: {background_config[2]}'
     )
+    return f"results/{subreddit}/{filename}"
