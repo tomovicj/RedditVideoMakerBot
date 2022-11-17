@@ -73,9 +73,13 @@ VALID_PRIVACY_STATUSES = ('public', 'private', 'unlisted')
 
 # Authorize the request and store authorization credentials.
 def get_authenticated_service():
-    flow = InstalledAppFlow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE, SCOPES)
-    credentials = flow.run_console()
+    try:
+        credentials = google.oauth2.credentials.Credentials.from_authorized_user_file(CLIENT_SECRETS_FILE)
+    except ValueError as e: # first run with new secret.json
+        flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
+        credentials = flow.run_console()
+        with open(CLIENT_SECRETS_FILE, 'w') as file:
+            file.write(credentials.to_json())
     return build(API_SERVICE_NAME, API_VERSION, credentials=credentials)
 
 
