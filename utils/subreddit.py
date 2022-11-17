@@ -1,5 +1,6 @@
 import json
-from os import getenv
+import os
+from utils import settings
 from utils.console import print_substep
 
 
@@ -14,7 +15,11 @@ def get_subreddit_undone(submissions: list, subreddit):
         Any: The submission that has not been done
     """
     # recursively checks if the top submission in the list was already done.
-
+    try:
+        with open("./video_creation/data/videos.json", "x") as f:
+            f.write("[]")
+    except:
+        pass
     with open("./video_creation/data/videos.json", "r", encoding="utf-8") as done_vids_raw:
         done_videos = json.load(done_vids_raw)
     for submission in submissions:
@@ -22,7 +27,7 @@ def get_subreddit_undone(submissions: list, subreddit):
             continue
         if submission.over_18:
             try:
-                if getenv("ALLOW_NSFW").casefold() == "false":
+                if settings.config["settings"]["allow_nsfw"] == False:
                     print_substep("NSFW Post Detected. Skipping...")
                     continue
             except AttributeError:

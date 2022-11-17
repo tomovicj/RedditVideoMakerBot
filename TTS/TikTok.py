@@ -1,8 +1,10 @@
 import base64
-import os
 import random
+
 import requests
 from requests.adapters import HTTPAdapter, Retry
+
+from utils import settings
 
 # from profanity_filter import ProfanityFilter
 # pf = ProfanityFilter()
@@ -62,9 +64,7 @@ noneng = [
 
 class TikTok:  # TikTok Text-to-Speech Wrapper
     def __init__(self):
-        self.URI_BASE = (
-            "https://api16-normal-useast5.us.tiktokv.com/media/api/text/speech/invoke/?text_speaker="
-        )
+        self.URI_BASE = "https://tiktok-tts.weilnet.workers.dev/api/generation"
         self.max_chars = 300
         self.voices = {"human": human, "nonhuman": nonhuman, "noneng": noneng}
 
@@ -75,20 +75,24 @@ class TikTok:  # TikTok Text-to-Speech Wrapper
         voice = (
             self.randomvoice()
             if random_voice
-            else (os.getenv("TIKTOK_VOICE") or random.choice(self.voices["human"]))
+            else (settings.config["settings"]["tts"]["tiktok_voice"] or random.choice(self.voices["human"]))
         )
+
+        data = {'text': text, 'voice': voice}
         try:
-            r = requests.post(f"{self.URI_BASE}{voice}&req_text={text}&speaker_map_type=0")
+            r = requests.post(self.URI_BASE, json=data)
         except requests.exceptions.SSLError:
+            print("Error!")
             # https://stackoverflow.com/a/47475019/18516611
             session = requests.Session()
             retry = Retry(connect=3, backoff_factor=0.5)
             adapter = HTTPAdapter(max_retries=retry)
             session.mount("http://", adapter)
             session.mount("https://", adapter)
-            r = session.post(f"{self.URI_BASE}{voice}&req_text={text}&speaker_map_type=0")
+            r = session.post(r = requests.post(self.URI_BASE, json=data))
         # print(r.text)
-        vstr = [r.json()["data"]["v_str"]][0]
+        # print(r.json()["data"], "\n")
+        vstr = [r.json()["data"]][0]
         b64d = base64.b64decode(vstr)
 
         with open(filepath, "wb") as out:

@@ -1,8 +1,8 @@
 import json
-import os
-from os import getenv
-from pathlib import Path
 
+from pathlib import Path
+from typing import Dict
+from utils import settings
 from playwright.async_api import async_playwright  # pylint: disable=unused-import
 
 # do not remove the above line
@@ -12,18 +12,18 @@ from rich.progress import track
 import translators as ts
 
 from utils.console import print_step, print_substep
+from video_creation.final_video import isNSFW
 
 storymode = False
 
 
-def download_screenshots_of_reddit_posts(reddit_object: dict[str], screenshot_num: int):
+def download_screenshots_of_reddit_posts(reddit_object: dict, screenshot_num: int):
     """Downloads screenshots of reddit posts as seen on the web. Downloads to assets/temp/png
 
     Args:
-        reddit_object (dict[str]): Reddit object received from reddit/subreddit.py
-        screenshot_num (int): Number of screenshots to downlaod
+        reddit_object (Dict): Reddit object received from reddit/subreddit.py
+        screenshot_num (int): Number of screenshots to download
     """
-
     print_step("Downloading screenshots of reddit posts...")
 
     # ! Make sure the reddit screenshots folder exists
@@ -35,7 +35,7 @@ def download_screenshots_of_reddit_posts(reddit_object: dict[str], screenshot_nu
         browser = p.chromium.launch()
         context = browser.new_context()
 
-        if getenv("THEME").upper() == "DARK":
+        if settings.config["settings"]["theme"] == "dark":
             cookie_file = open("./video_creation/data/cookie-dark-mode.json", encoding="utf-8")
         else:
             cookie_file = open("./video_creation/data/cookie-light-mode.json", encoding="utf-8")
@@ -48,6 +48,7 @@ def download_screenshots_of_reddit_posts(reddit_object: dict[str], screenshot_nu
         if page.locator('[data-testid="content-gate"]').is_visible():
             # This means the post is NSFW and requires to click the proceed button.
 
+            isNSFW()
             print_substep("Post is NSFW. You are spicy...")
             page.locator('[data-testid="content-gate"] button').click()
             page.locator(
@@ -56,9 +57,12 @@ def download_screenshots_of_reddit_posts(reddit_object: dict[str], screenshot_nu
 
         # translate code
 
-        if getenv("POSTLANG"):
+        if settings.config["reddit"]["thread"]["post_lang"]:
             print_substep("Translating post...")
-            texts_in_tl = ts.google(reddit_object["thread_title"], to_language=os.getenv("POSTLANG"))
+            texts_in_tl = ts.google(
+                reddit_object["thread_title"],
+                to_language=settings.config["reddit"]["thread"]["post_lang"],
+            )
 
             page.evaluate(
                 "tl_content => document.querySelector('[data-test-id=\"post-content\"] > div:nth-child(3) > div > div').textContent = tl_content",
@@ -88,9 +92,10 @@ def download_screenshots_of_reddit_posts(reddit_object: dict[str], screenshot_nu
 
                 # translate code
 
-                if getenv("POSTLANG"):
+                if settings.config["reddit"]["thread"]["post_lang"]:
                     comment_tl = ts.google(
-                        comment["comment_body"], to_language=os.getenv("POSTLANG")
+                        comment["comment_body"],
+                        to_language=settings.config["reddit"]["thread"]["post_lang"],
                     )
                     page.evaluate(
                         '([tl_content, tl_id]) => document.querySelector(`#t1_${tl_id} > div:nth-child(2) > div > div[data-testid="comment"] > div`).textContent = tl_content',
