@@ -48,19 +48,6 @@ RETRIABLE_STATUS_CODES = [500, 502, 503, 504]
 # For more information about the client_secrets.json file format, see:
 #   https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
 CLIENT_SECRETS_FILE = './uploaders/yt/client_secrets.json'
-if not os.path.isfile(CLIENT_SECRETS_FILE):
-    with open(CLIENT_SECRETS_FILE, "w") as f:
-        f.write(
-"""{
-    "web": {
-        "client_id": "INSERT CLIENT ID HERE",
-        "client_secret": "INSERT CLIENT SECRET HERE",
-        "redirect_uris": [],
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://accounts.google.com/o/oauth2/token"
-    }
-}""")
-    exit(f"Please edit {CLIENT_SECRETS_FILE}")
 
 # This OAuth 2.0 access scope allows an application to upload files to the
 # authenticated user's YouTube channel, but doesn't allow other types of access.
@@ -72,11 +59,21 @@ VALID_PRIVACY_STATUSES = ('public', 'private', 'unlisted')
 
 
 # Authorize the request and store authorization credentials.
-def get_authenticated_service():
+def get_authenticated_service(config):
+    if not os.path.isfile(CLIENT_SECRETS_FILE):
+        client_secrets = {
+        "web": {
+            "client_id": config["uploader"]["youtube"]["client_id"],
+            "client_secret": config["uploader"]["youtube"]["client_secret"],
+            "redirect_uris": [],
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://accounts.google.com/o/oauth2/token"
+        }
+    }
     try:
         credentials = google.oauth2.credentials.Credentials.from_authorized_user_file(CLIENT_SECRETS_FILE)
     except ValueError as e: # first run with new secret.json
-        flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
+        flow = InstalledAppFlow.from_client_config(client_secrets, SCOPES)
         credentials = flow.run_console()
         with open(CLIENT_SECRETS_FILE, 'w') as file:
             file.write(credentials.to_json())
@@ -177,7 +174,7 @@ def resumable_upload(request):
 #         print(f"An HTTP error {e.resp.status} occurred:\n{e.content}")
 
 
-def upload(file: str, title: str, description: str, category: str, keywords: str, privacyStatus: str, MadeForKids: bool = False):
+def upload(config, file: str, title: str, description: str, category: str, keywords: str, privacyStatus: str, MadeForKids: bool = False):
     args = argparse.Namespace()
     dict = vars(args)
 
@@ -189,7 +186,7 @@ def upload(file: str, title: str, description: str, category: str, keywords: str
     dict["privacyStatus"] = privacyStatus
     dict["MadeForKids"] = MadeForKids
 
-    youtube = get_authenticated_service()
+    youtube = get_authenticated_service(config)
 
     try:
         return initialize_upload(youtube, args)

@@ -36,3 +36,16 @@ choice = { optional = false, default = "", options = ["streamlabspolly", "tiktok
 aws_polly_voice = { optional = false, default = "Matthew", example = "Matthew", explanation = "The voice used for AWS Polly" }
 streamlabs_polly_voice = { optional = false, default = "Matthew", example = "Matthew", explanation = "The voice used for Streamlabs Polly" }
 tiktok_voice = { optional = false, default = "en_us_006", example = "en_us_006", explanation = "The voice used for TikTok TTS" }
+
+[uploader]
+upload = { optional = false, type = "bool", default = "false", options = [true, false], example = "true", explanation = "Auto upload video" }
+
+[uploader.youtube]
+upload = { optional = false, type = "bool", default = "false", options = [true, false], example = "true", explanation = "Auto upload video to youtube" }
+client_id = { optional = false, explanation = "client_id for youtube channel" }
+client_secret = { optional = false, explanation = "client_secret for youtube channel" }
+description = { optional = true, default = "", example = "This is description!", explanation = "Description for youtube video" }
+category = { optional = true, default = "24", example = "24", explanation = "Category for youtube video" }
+keywords = { optional = true, default = "reddit", example = "reddit,funny", explanation = "csv list of keywords for youtube video, https://techpostplus.com/youtube-video-categories-list-faqs-and-solutions/" }
+privacyStatus = { optional = true, default = "private", options = ["public", "private", "unlisted"], example = "public" }
+madeForKids = { optional = true, type = "bool", default = "false", options = [true, false], example = "false", explanation = "Is your content made for kids" }

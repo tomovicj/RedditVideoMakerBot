@@ -17,7 +17,7 @@ from video_creation.final_video import make_final_video
 from video_creation.screenshot_downloader import download_screenshots_of_reddit_posts
 from video_creation.voices import save_text_to_mp3
 
-from uploaders.yt.upload_video import upload
+from uploaders.uploader import upload
 
 VERSION = "2.2.9"
 print(
@@ -47,14 +47,8 @@ def main(POST_ID=None):
     download_background(bg_config)
     chop_background_video(bg_config, length)
     path = make_final_video(number_of_comments, length, reddit_object, bg_config)
+    upload(config, path, reddit_object["thread_title"])
     
-    print("Uploading to YouTube...")
-    id = upload(path, reddit_object["thread_title"], "", "24","reddit,askreddit,funny,story,redditstory", "public", False)
-    if id:
-        print(f"https://www.youtube.com/watch?v={id}")
-    else: 
-        print("Unsuccessfully uploaded to YouTube!")
-
 
 def run_many(times):
     for x in range(1, times + 1):
