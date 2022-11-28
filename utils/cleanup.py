@@ -1,4 +1,5 @@
 import os
+import shutil
 from os.path import exists
 
 
@@ -20,8 +21,16 @@ def cleanup() -> int:
                 os.remove("./assets/temp/mp4/" + file)
         except FileNotFoundError:
             pass
-        for file in os.listdir("./assets/temp/mp3"):
-            count += 1
-            os.remove("./assets/temp/mp3/" + file)
+        try:
+            for file in os.listdir("./assets/temp/mp3"):
+                count += 1
+                os.remove("./assets/temp/mp3/" + file)
+        except FileNotFoundError:
+            pass
+        # Deletes results and all containing files
+        try:
+            shutil.rmtree("./results", True)
+        except:
+            pass
         return count
     return 0

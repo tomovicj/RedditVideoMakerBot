@@ -4,7 +4,7 @@ from subprocess import Popen
 from os import name
 from reddit.subreddit import get_subreddit_threads
 from utils.cleanup import cleanup
-from utils.console import print_markdown, print_step
+from utils.console import print_markdown, print_step, print_substep
 from utils import settings
 
 # from utils.checker import envUpdate
@@ -48,6 +48,10 @@ def main(POST_ID=None):
     chop_background_video(bg_config, length)
     path = make_final_video(number_of_comments, length, reddit_object, bg_config)
     upload(config, path, reddit_object["thread_title"])
+    
+    print_step("Removing temporary files 🗑")
+    cleanups = cleanup()
+    print_substep(f"Removed {cleanups} temporary files 🗑")
     
 
 def run_many(times):
