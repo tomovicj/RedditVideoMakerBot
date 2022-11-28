@@ -141,10 +141,6 @@ def make_final_video(
     )
     # os.remove("assets/temp/temp.mp4")
 
-    print_step("Removing temporary files 🗑")
-    cleanups = cleanup()
-    print_substep(f"Removed {cleanups} temporary files 🗑")
-    print_substep("See result in the results folder!")
 
     print_step(
         f'Reddit title: {reddit_obj["thread_title"]} \n Background Credit: {background_config[2]}'

@@ -49,3 +49,6 @@ category = { optional = true, default = "24", example = "24", explanation = "Cat
 keywords = { optional = true, default = "reddit", example = "reddit,funny", explanation = "csv list of keywords for youtube video, https://techpostplus.com/youtube-video-categories-list-faqs-and-solutions/" }
 privacyStatus = { optional = true, default = "private", options = ["public", "private", "unlisted"], example = "public" }
 madeForKids = { optional = true, type = "bool", default = "false", options = [true, false], example = "false", explanation = "Is your content made for kids" }
+
+[discord]
+webhook = {optional = true, default = false, explanation = "Enter discord webhook url"}
